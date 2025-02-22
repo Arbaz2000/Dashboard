@@ -49,7 +49,8 @@ export const LeadCard = ({
     year: "numeric",
   });
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
     router.push(`/leads/${id}`);
   };
 
@@ -58,13 +59,18 @@ export const LeadCard = ({
       ref={provided.innerRef}
       {...provided.draggableProps}
       {...provided.dragHandleProps}
-      className={`transition-shadow ${snapshot.isDragging ? "shadow-lg" : ""} cursor-pointer`}
-      onClick={handleClick}
+      className={`transition-shadow ${snapshot.isDragging ? "shadow-lg" : ""}`}
     >
       <Card>
         <CardContent className="p-4">
           <div className="flex justify-between items-center">
             <h3 className="font-medium">{name}</h3>
+            <button 
+              onClick={handleClick}
+              className="p-1 hover:bg-gray-100 rounded-full"
+            >
+              <FaEllipsisH className="w-4 h-4 text-gray-500" />
+            </button>
           </div>
           <div className="flex justify-between items-center mt-2">
             <div className="flex items-center space-x-2">

@@ -25,12 +25,20 @@ export default function LeadsPage() {
   const [columns, setColumns] = useState<ColumnType>(mockLeads);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "dateCreated">("dateCreated");
+  const [daysFilter, setDaysFilter] = useState<"all" | "today" | "7days" | "30days">("all");
 
   const getFilteredAndSortedLeads = (leads: Lead[]) => {
     return leads
-      .filter((lead) =>
-        lead.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      .filter((lead) => {
+        // Name filter
+        const nameMatch = lead.name.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        // Days filter
+        if (daysFilter === "all") return nameMatch;
+        
+        const days = getDaysFromNow(new Date(lead.dateCreated));
+        return nameMatch && isInSelectedRange(days, daysFilter);
+      })
       .sort((a, b) => {
         if (sortBy === "dateCreated") {
           return new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime();
@@ -39,45 +47,55 @@ export default function LeadsPage() {
       });
   };
 
+  const isInSelectedRange = (days: number, selectedRange: string) => {
+    switch (selectedRange) {
+      case "today":
+        return days < 1;
+      case "7days":
+        return days <= 7;
+      case "30days":
+        return days <= 30;
+      default:
+        return true;
+    }
+  };
+
+  const getDaysFromNow = (date: Date) => {
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
     const { source, destination } = result;
 
-    // If the card is dropped in the same place (same column and same index), don't do anything
-    if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
-    ) {
-      return;
-    }
+    const sourceId = source.droppableId as keyof ColumnType;
+    const destinationId = destination.droppableId as keyof ColumnType;
 
-    // Copy the columns to avoid direct mutation
+    // Create a new copy of the columns
     const newColumns = { ...columns };
 
-    // Extract source and destination arrays
-    const sourceArray = newColumns[source.droppableId as keyof ColumnType];
-    const destArray = newColumns[destination.droppableId as keyof ColumnType];
+    // Get the actual arrays
+    const sourceLeads = [...newColumns[sourceId]];
+    const destinationLeads = sourceId === destinationId 
+      ? sourceLeads 
+      : [...newColumns[destinationId]];
 
-    // Remove the item from the source array
-    const [removed] = sourceArray.splice(source.index, 1);
+    // Remove from source
+    const [movedLead] = sourceLeads.splice(source.index, 1);
 
-    // If moving to the same column, simply insert at the new index without duplicating
-    if (source.droppableId === destination.droppableId) {
-      sourceArray.splice(destination.index, 0, removed);
-    } else {
-      // Otherwise, move the item to the destination column
-      destArray.splice(destination.index, 0, removed);
+    // Add to destination
+    destinationLeads.splice(destination.index, 0, movedLead);
+
+    // Update the columns
+    newColumns[sourceId] = sourceLeads;
+    if (sourceId !== destinationId) {
+      newColumns[destinationId] = destinationLeads;
     }
 
-    // Set the updated state
-    newColumns[source.droppableId as keyof ColumnType] = sourceArray;
-    newColumns[destination.droppableId as keyof ColumnType] = destArray;
-
-    // Only update if there's a change in order or column
-    if (JSON.stringify(newColumns) !== JSON.stringify(columns)) {
-      setColumns(newColumns);
-    }
+    setColumns(newColumns);
   };
 
   const handleAddLead = (lead: Omit<Lead, "id">) => {
@@ -115,31 +133,41 @@ export default function LeadsPage() {
       .join(" ");
   };
 
-  const DroppableColumn = ({ columnId }: { columnId: string }) => (
-    <Droppable droppableId={columnId} key={columnId}>
-      {(provided, snapshot) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.droppableProps}
-          className={`min-h-[500px] space-y-2 p-2 rounded-md transition-colors ${
-            snapshot.isDraggingOver ? "bg-slate-100" : ""
-          }`}
-        >
-          {getFilteredAndSortedLeads(columns[columnId as keyof ColumnType]).map((lead, index) => (
-            <LeadCard
-              key={lead.id}
-              id={lead.id}
-              index={index}
-              name={lead.name}
-              source={lead.source}
-              dateCreated={lead.dateCreated}
-            />
-          ))}
-          {provided.placeholder}
-        </div>
-      )}
-    </Droppable>
-  );
+  const DroppableColumn = ({ columnId }: { columnId: string }) => {
+    const leads = columns[columnId as keyof ColumnType];
+    // Get filtered and sorted leads for display only
+    const displayLeads = getFilteredAndSortedLeads(leads);
+    
+    return (
+      <Droppable droppableId={columnId} key={columnId}>
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className={`min-h-[500px] space-y-2 p-2 rounded-md transition-colors ${
+              snapshot.isDraggingOver ? "bg-slate-100" : ""
+            }`}
+          >
+            {displayLeads.map((lead, index) => {
+              // Find the actual index in the original array
+              const originalIndex = leads.findIndex(l => l.id === lead.id);
+              return (
+                <LeadCard
+                  key={lead.id}
+                  id={lead.id}
+                  index={originalIndex} // Use the original index for drag and drop
+                  name={lead.name}
+                  source={lead.source}
+                  dateCreated={lead.dateCreated}
+                />
+              );
+            })}
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
+    );
+  };
 
   return (
     <DashboardShell>
@@ -156,11 +184,21 @@ export default function LeadsPage() {
             />
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as "name" | "dateCreated")}
+              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
               className="px-3 py-2 border rounded-md"
             >
               <option value="dateCreated">Sort by Date</option>
               <option value="name">Sort by Name</option>
+            </select>
+            <select
+              value={daysFilter}
+              onChange={(e) => setDaysFilter(e.target.value as typeof daysFilter)}
+              className="px-3 py-2 border rounded-md"
+            >
+              <option value="all">All Days</option>
+              <option value="today">Today</option>
+              <option value="7days">Last 7 Days</option>
+              <option value="30days">Last 30 Days</option>
             </select>
             <NewLeadForm onAddLead={handleAddLead} />
           </div>
