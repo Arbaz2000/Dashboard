@@ -20,8 +20,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Mail, Phone, ChevronUp, ChevronDown } from "lucide-react"; // Importing lucide-react icons
 import { packages } from "./packageData"; // Add this import
-import { Overview } from "@/components/overview";
-import { RecentBookings } from "@/components/recent-bookings";
 
 type Package = {
   profile: string;

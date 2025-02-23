@@ -24,7 +24,7 @@ type ColumnType = {
 export default function LeadsPage() {
   const [columns, setColumns] = useState<ColumnType>(mockLeads);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "dateCreated">("dateCreated");
+  const [sortBy, setSortBy] = useState<"name" | "dateCreated">("name");
   const [daysFilter, setDaysFilter] = useState<"all" | "today" | "7days" | "30days">("all");
 
   const getFilteredAndSortedLeads = (leads: Lead[]) => {
