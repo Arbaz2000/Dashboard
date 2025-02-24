@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useParams } from "next/navigation";
 import { mockLeads } from "../data/mockLeads";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Github, Linkedin, Twitter, Facebook, Instagram } from "lucide-react";
 
 // Define the lead stages
 const stages = [
@@ -90,46 +91,45 @@ export default function LeadDetailsPage() {
 
                 {/* Social Media Links */}
                 <div className="flex space-x-3">
-                  {/* Social Media Links (LinkedIn, Twitter, etc.) */}
                   <a
                     href="https://linkedin.com/in/username"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-gray-700 p-2 border border-gray-700 rounded-full"
                   >
-                    {/* LinkedIn Icon */}
+                    <Linkedin className="w-5 h-5" />
                   </a>
                   <a
                     href="https://twitter.com/username"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-gray-700 p-2 border border-gray-700 rounded-full"
                   >
-                    {/* Twitter Icon */}
+                    <Twitter className="w-5 h-5" />
                   </a>
                   <a
                     href="https://facebook.com/username"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-gray-700 p-2 border border-gray-700 rounded-full"
                   >
-                    {/* Facebook Icon */}
+                    <Facebook className="w-5 h-5" />
                   </a>
                   <a
                     href="https://instagram.com/username"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-gray-700 p-2 border border-gray-700 rounded-full"
                   >
-                    {/* Instagram Icon */}
+                    <Instagram className="w-5 h-5" />
                   </a>
                   <a
                     href="https://github.com/username"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-gray-700 p-2 border border-gray-700 rounded-full"
                   >
-                    {/* GitHub Icon */}
+                    <Github className="w-5 h-5" />
                   </a>
                 </div>
               </div>

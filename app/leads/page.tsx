@@ -3,7 +3,8 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DragDropContext, Droppable, DropResult } from "react-beautiful-dnd";
-import { useState, StrictMode } from "react";
+import { useState } from "react";
+import { FaSyncAlt } from "react-icons/fa"; // Import the refresh icon
 import { LeadCard } from "./components/LeadCard";
 import { NewLeadForm } from "./components/NewLeadForm";
 import { mockLeads } from "./data/mockLeads";
@@ -24,8 +25,17 @@ type ColumnType = {
 export default function LeadsPage() {
   const [columns, setColumns] = useState<ColumnType>(mockLeads);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "dateCreated">("name");
-  const [daysFilter, setDaysFilter] = useState<"all" | "today" | "7days" | "30days">("all");
+  const [sortBy, setSortBy] = useState<"name" | "dateCreated" | "none">("none");
+  const [daysFilter, setDaysFilter] = useState<
+    "all" | "today" | "7days" | "30days"
+  >("all");
+
+  const [refreshKey, setRefreshKey] = useState(0); // Add a state to force re-render
+
+  // Re-render handler, for the refresh button click
+  const handleRefresh = () => {
+    setRefreshKey((prev) => prev + 1); // Change the key to force a re-render
+  };
 
   const getFilteredAndSortedLeads = (leads: Lead[]) => {
     return leads
@@ -40,6 +50,7 @@ export default function LeadsPage() {
         return nameMatch && isInSelectedRange(days, daysFilter);
       })
       .sort((a, b) => {
+        if (sortBy === "none") return 0;
         if (sortBy === "dateCreated") {
           return new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime();
         }
@@ -150,7 +161,7 @@ export default function LeadsPage() {
           >
             {displayLeads.map((lead, index) => {
               // Find the actual index in the original array
-              const originalIndex = leads.findIndex(l => l.id === lead.id);
+              const originalIndex = leads.findIndex((l) => l.id === lead.id);
               return (
                 <LeadCard
                   key={lead.id}
@@ -173,7 +184,15 @@ export default function LeadsPage() {
     <DashboardShell>
       <div className="flex-1 space-y-4 p-8 pt-6">
         <div className="flex items-center justify-between space-x-4">
-          <h2 className="text-3xl font-bold tracking-tight">Leads</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-3xl font-bold tracking-tight">Leads</h2>
+            <button
+              onClick={handleRefresh}
+              className="bg-black text-white p-2 rounded-full hover:bg-gray-800 transition-colors"
+            >
+              <FaSyncAlt className="text-xl" />
+            </button>
+          </div>
           <div className="flex items-center space-x-4">
             <input
               type="text"
@@ -187,6 +206,7 @@ export default function LeadsPage() {
               onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
               className="px-3 py-2 border rounded-md"
             >
+              <option value="none">No Sorting</option>
               <option value="dateCreated">Sort by Date</option>
               <option value="name">Sort by Name</option>
             </select>

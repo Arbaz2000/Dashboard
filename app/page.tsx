@@ -1,125 +1,141 @@
-import { DashboardShell } from "@/components/dashboard-shell"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Overview } from "@/components/overview"
-import { RecentBookings } from "@/components/recent-bookings"
+"use client";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast"; // Fixed toast import
 
-export default function DashboardPage() {
+type FormData = {
+  email: string;
+  password: string;
+  confirmPassword?: string;
+};
+
+export default function AuthPage() {
+  const [isLogin, setIsLogin] = useState(true);
+  const router = useRouter();
+  const { toast } = useToast(); // Use the useToast hook
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<FormData>();
+
+  const onSubmit = async (data: FormData) => {
+    try {
+      // Simulate API call with random errors
+      const random = Math.random();
+      if (random > 0.7) {
+        throw new Error(
+          isLogin
+            ? "Invalid credentials. Please try again."
+            : "Email already exists. Please use a different email."
+        );
+      }
+
+      // Simulate successful auth
+      router.push("/dashboard");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <DashboardShell>
-      <div className="flex-1 space-y-4 p-8 pt-6">
-        <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                className="h-4 w-4 text-muted-foreground"
-              >
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">1,234</div>
-              <p className="text-xs text-muted-foreground">+20.1% from last month</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                className="h-4 w-4 text-muted-foreground"
-              >
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-              </svg>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">$45,231.89</div>
-              <p className="text-xs text-muted-foreground">+15.2% from last month</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Leads</CardTitle>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                className="h-4 w-4 text-muted-foreground"
-              >
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-              </svg>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">+573</div>
-              <p className="text-xs text-muted-foreground">+201 since last week</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Quotations</CardTitle>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                className="h-4 w-4 text-muted-foreground"
-              >
-                <rect width="20" height="14" x="2" y="5" rx="2" />
-                <path d="M2 10h20" />
-              </svg>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-muted-foreground">-3 from yesterday</p>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-          <Card className="col-span-4">
-            <CardHeader>
-              <CardTitle>Booking Overview</CardTitle>
-            </CardHeader>
-            <CardContent className="pl-2">
-              <Overview />
-            </CardContent>
-          </Card>
-          <Card className="col-span-3">
-            <CardHeader>
-              <CardTitle>Recent Bookings</CardTitle>
-              <CardDescription>You have 12 new bookings this week.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <RecentBookings />
-            </CardContent>
-          </Card>
+    <div className="min-h-screen flex items-center justify-center bg-slate-200">
+      <div className="max-w-md w-full space-y-8 p-8 bg-card rounded-lg border shadow-sm">
+        <h2 className="text-3xl font-bold text-center">
+          {isLogin ? "Login" : "Register"}
+        </h2>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              {...register("email", {
+                required: "Email is required",
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: "Invalid email address",
+                },
+              })}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.email.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              type="password"
+              {...register("password", {
+                required: "Password is required",
+                minLength: {
+                  value: 6,
+                  message: "Password must be at least 6 characters",
+                },
+              })}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+            />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.password.message}
+              </p>
+            )}
+          </div>
+
+          {!isLogin && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                {...register("confirmPassword", {
+                  required: "Please confirm your password",
+                  validate: (value) =>
+                    value === watch("password") || "Passwords do not match",
+                })}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+              />
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gary-700"
+          >
+            {isLogin ? "Sign In" : "Sign Up"}
+          </button>
+        </form>
+
+        <div className="text-center space-y-4">
+          <button
+            onClick={() => setIsLogin(!isLogin)}
+            className="text-sm text-gray-600 hover:text-black"
+          >
+            {isLogin
+              ? "Don't have an account? Sign up"
+              : "Already have an account? Sign in"}
+          </button>
         </div>
       </div>
-    </DashboardShell>
-  )
+    </div>
+  );
 }
-

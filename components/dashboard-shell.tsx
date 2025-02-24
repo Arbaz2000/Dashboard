@@ -19,7 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 
 const sidebarItems = [
-  { icon: LayoutDashboard, tooltip: "Dashboard", href: "/" },
+  { icon: LayoutDashboard, tooltip: "Dashboard", href: "/dashboard" },
   { icon: Building2, tooltip: "Hotels", href: "/hotels" },
   { icon: CreditCard, tooltip: "Cards", href: "/cards" },
   { icon: Briefcase, tooltip: "Services", href: "/services" },
@@ -93,7 +93,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                         size="icon"
                         asChild
                         className={cn(
-                          "w-12 h-12",
+                          "w-12 h-12 transition-all duration-300 ease-in-out", // Added transition here
                           isActive && "bg-primary text-primary-foreground"
                         )}
                       >
@@ -113,12 +113,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           </nav>
         </aside>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+        {/* Page content with smooth transitions */}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 transition-all duration-300 ease-in-out">
           {children}
         </main>
       </div>
     </div>
   );
 }
-
