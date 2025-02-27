@@ -2,12 +2,7 @@
 
 import { useState } from "react";
 import { DashboardShell } from "@/components/dashboard-shell";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -17,9 +12,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Phone, ChevronUp, ChevronDown } from "lucide-react"; // Importing lucide-react icons
-import { packages } from "./mockPackageData"; // Add this import
-import { DollarIcon, UsersIcon, PackageIcon } from "./icons/dashboard-icons";
+import {
+  Mail,
+  Phone,
+  ChevronsUpDown,
+  Users,
+  Package as PackageIcon,
+  DollarSign,
+  Tag,
+  Building2,
+  Wallet,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react"; // Added new icons
+import { packages } from "./mockPackageData";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type Package = {
   profile: string;
@@ -33,9 +40,9 @@ type Package = {
 const getStatusBadge = (status: string) => {
   const styles =
     {
-      accepted: "bg-green-100 text-green-800",
-      pending: "bg-yellow-100 text-yellow-800",
-      declined: "bg-red-100 text-red-800",
+      accepted: "bg-green-100 text-green-800 hover:bg-green-200",
+      pending: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200",
+      declined: "bg-red-100 text-red-800 hover:bg-red-200",
     }[status] || "";
 
   return <Badge className={styles}>{status}</Badge>;
@@ -45,12 +52,10 @@ export default function PackagesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<keyof Package>("profile");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set()); // Track selected rows
   const itemsPerPage = 7;
 
-  // Filter packages based on search query
   const filteredPackages = packages.filter(
     (pkg) =>
       pkg.profile.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -58,14 +63,12 @@ export default function PackagesPage() {
       pkg.contact.includes(searchQuery)
   );
 
-  // Sort packages based on the selected column and order
   const sortedPackages = filteredPackages.sort((a: Package, b: Package) => {
     if (a[sortBy] < b[sortBy]) return sortOrder === "asc" ? -1 : 1;
     if (a[sortBy] > b[sortBy]) return sortOrder === "asc" ? 1 : -1;
     return 0;
   });
 
-  // Paginate sorted packages
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentPackages = sortedPackages.slice(
@@ -75,16 +78,23 @@ export default function PackagesPage() {
 
   const handleSort = (column: string) => {
     if (sortBy === column) {
-      // Toggle the sort order
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
-      // Set the new column to sort by and default to ascending order
       setSortBy(column as keyof Package);
       setSortOrder("asc");
     }
   };
 
-  // Pagination control handlers
+  const handleRowSelect = (index: number) => {
+    const newSelectedRows = new Set(selectedRows);
+    if (newSelectedRows.has(index)) {
+      newSelectedRows.delete(index);
+    } else {
+      newSelectedRows.add(index);
+    }
+    setSelectedRows(newSelectedRows);
+  };
+
   const totalPages = Math.ceil(sortedPackages.length / itemsPerPage);
 
   const handlePreviousPage = () => {
@@ -101,7 +111,7 @@ export default function PackagesPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold tracking-tight">Packages</h2>
         </div>
-        
+
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
           <div className="col-span-2 ">
             <Card className="h-full">
@@ -109,7 +119,7 @@ export default function PackagesPage() {
                 <CardTitle className="text-sm font-medium">
                   Total Estimate
                 </CardTitle>
-                <DollarIcon />
+                <DollarSign />
               </CardHeader>
               <CardContent>
                 <div className="flex justify-between items-center">
@@ -151,7 +161,7 @@ export default function PackagesPage() {
                 <CardTitle className="text-sm font-medium">
                   Total Customers
                 </CardTitle>
-                <UsersIcon />
+                <Users />
               </CardHeader>
               <CardContent className="flex items-center justify-between">
                 <div className="text-4xl font-bold mt-3">1,234</div>
@@ -170,118 +180,239 @@ export default function PackagesPage() {
               <input
                 type="text"
                 placeholder="Search..."
-                className="p-2 border border-gray-300 rounded w-full"
+                className="p-2 border border-gray-300 rounded-lg w-full"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               <select
-                className="p-2 border rounded justify-end "
+                className="p-2 border rounded-lg justify-end border-gray-300 text-slate-400"
                 value={sortBy}
                 onChange={(e) => handleSort(e.target.value)}
               >
-                <option value="profile">Sort by Profile</option>
-                <option value="company">Sort by Company</option>
-                <option value="status">Sort by Status</option>
-                <option value="estimateValue">Sort by Estimate Value</option>
+                <option value="profile" className=" text-black">
+                  Sort by Profile
+                </option>
+                <option value="company" className=" text-black">
+                  Sort by Company
+                </option>
+                <option value="status" className=" text-black">
+                  Sort by Status
+                </option>
+                <option value="estimateValue" className=" text-black">
+                  Sort by Estimate Value
+                </option>
               </select>
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
+            <Table className="border border-gray-300">
               <TableHeader>
-                <TableRow>
-                  <TableHead>Select</TableHead>
-                  <TableHead>
+                <TableRow className="border-b border-gray-300">
+                  <TableHead className="border-r border-gray-300 text-md font-bold text-gray-700">
+                    Select
+                  </TableHead>
+                  <TableHead className="border-r border-gray-300 text-md font-bold text-gray-700">
                     <div className="flex items-center space-x-2">
+                      <PackageIcon className="w-5 h-5" />
                       <span>Profile</span>
                       {sortBy === "profile" && sortOrder === "asc" ? (
-                        <ChevronUp
-                          className="w-4 h-4"
+                        <ChevronsUpDown
+                          className="w-5 h-5"
                           onClick={() => handleSort("profile")}
                         />
                       ) : sortBy === "profile" && sortOrder === "desc" ? (
-                        <ChevronDown
-                          className="w-4 h-4"
+                        <ChevronsUpDown
+                          className="w-5 h-5"
                           onClick={() => handleSort("profile")}
                         />
                       ) : (
-                        <ChevronUp
-                          className="w-4 h-4"
+                        <ChevronsUpDown
+                          className="w-5 h-5"
                           onClick={() => handleSort("profile")}
                         />
                       )}
                     </div>
                   </TableHead>
-                  <TableHead>
+                  <TableHead className="border-r border-gray-300 text-md font-bold text-gray-700">
                     <div className="flex items-center space-x-2">
+                      <Mail className="w-5 h-5" />
                       <span>Email</span>
                       {sortBy === "email" && sortOrder === "asc" ? (
-                        <ChevronUp
-                          className="w-4 h-4"
+                        <ChevronsUpDown
+                          className="w-5 h-5"
                           onClick={() => handleSort("email")}
                         />
                       ) : sortBy === "email" && sortOrder === "desc" ? (
-                        <ChevronDown
-                          className="w-4 h-4"
+                        <ChevronsUpDown
+                          className="w-5 h-5"
                           onClick={() => handleSort("email")}
                         />
                       ) : (
-                        <ChevronUp
-                          className="w-4 h-4"
+                        <ChevronsUpDown
+                          className="w-5 h-5"
                           onClick={() => handleSort("email")}
                         />
                       )}
                     </div>
                   </TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Estimate Value</TableHead>
+                  <TableHead className="border-r border-gray-300 text-md font-bold text-gray-700">
+                    <div className="flex items-center space-x-2">
+                      <Building2 className="w-5 h-5" />
+                      <span>Company</span>
+                      {sortBy === "company" && sortOrder === "asc" ? (
+                        <ChevronsUpDown
+                          className="w-5 h-5"
+                          onClick={() => handleSort("company")}
+                        />
+                      ) : sortBy === "company" && sortOrder === "desc" ? (
+                        <ChevronsUpDown
+                          className="w-5 h-5"
+                          onClick={() => handleSort("company")}
+                        />
+                      ) : (
+                        <ChevronsUpDown
+                          className="w-5 h-5"
+                          onClick={() => handleSort("company")}
+                        />
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead className="border-r border-gray-300 text-md font-bold text-gray-700">
+                    <div className="flex items-center space-x-2">
+                      <Tag className="w-5 h-5" />
+                      <span>Status</span>
+                      {sortBy === "status" && sortOrder === "asc" ? (
+                        <ChevronsUpDown
+                          className="w-5 h-5"
+                          onClick={() => handleSort("status")}
+                        />
+                      ) : sortBy === "status" && sortOrder === "desc" ? (
+                        <ChevronsUpDown
+                          className="w-5 h-5"
+                          onClick={() => handleSort("status")}
+                        />
+                      ) : (
+                        <ChevronsUpDown
+                          className="w-5 h-5"
+                          onClick={() => handleSort("status")}
+                        />
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead className="border-r border-gray-300 text-md font-bold text-gray-700">
+                    <div className="flex items-center space-x-2">
+                      <Wallet className="w-5 h-5" />
+                      <span>Estimate Value</span>
+                      {sortBy === "estimateValue" && sortOrder === "asc" ? (
+                        <ChevronsUpDown
+                          className="w-5 h-5"
+                          onClick={() => handleSort("estimateValue")}
+                        />
+                      ) : sortBy === "estimateValue" && sortOrder === "desc" ? (
+                        <ChevronsUpDown
+                          className="w-5 h-5"
+                          onClick={() => handleSort("estimateValue")}
+                        />
+                      ) : (
+                        <ChevronsUpDown
+                          className="w-5 h-5"
+                          onClick={() => handleSort("estimateValue")}
+                        />
+                      )}
+                    </div>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {currentPackages.map((pkg, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      <input type="checkbox" />
+                  <TableRow
+                    key={index}
+                    className={`${
+                      selectedRows.has(index) ? "bg-blue-100" : ""
+                    } hover:bg-blue-50`} // Added hover effect
+                    onClick={() => handleRowSelect(index)} // Toggle selection
+                  >
+                    <TableCell className="flex justify-center items-center">
+                      <input
+                        type="checkbox"
+                        className="transform scale-150 mt-3"
+                        checked={selectedRows.has(index)}
+                        onChange={() => handleRowSelect(index)}
+                      />
                     </TableCell>
-                    <TableCell>{pkg.profile}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage src="https://via.placeholder.com/40" />
+                          <AvatarFallback>
+                            {pkg.profile
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <span className="font-semibold">{pkg.profile}</span>
+                          <div className="text-xs text-gray-500">
+                            Created: {pkg.profileCreatedAt}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2 text-sm">
-                          <Mail className="inline mr-2 opacity-60" />
+                          <Mail className="inline mr-2 opacity-60 w-4 h-4" />
                           {pkg.email}
                         </div>
                         <div className="flex items-center space-x-2 text-sm">
-                          <Phone className="inline mr-2 opacity-60" />
+                          <Phone className="inline mr-2 opacity-60 w-4 h-4" />
                           {pkg.contact}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{pkg.company}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage src="https://via.placeholder.com/40" />
+                          <AvatarFallback>
+                            {pkg.company
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <span className="font-semibold">{pkg.company}</span>
+                          <div className="text-xs text-gray-500">
+                            {pkg.companyEmail}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
                     <TableCell>{getStatusBadge(pkg.status)}</TableCell>
                     <TableCell>{pkg.estimateValue}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+
             {/* Pagination controls */}
-            <div className="flex justify-between mt-4">
+            <div className="flex justify-end mt-4">
               <button
-                className="p-2 border rounded"
+                className="p-2 border rounded "
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
               >
-                Previous
+                <ChevronLeft className="w-5 h-5 stroke-5" />
               </button>
-              <span>
-                Page {currentPage} of {totalPages}
-              </span>
+              <span className="p-2">{currentPage}</span>
               <button
                 className="p-2 border rounded"
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
               >
-                Next
+                <ChevronRight className="w-5 h-5 stroke-5" />
               </button>
             </div>
           </CardContent>
